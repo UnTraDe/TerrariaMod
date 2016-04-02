@@ -39,14 +39,10 @@ int main(int argc, char const *argv[])
 
 	assert(success);
 
-
-	//std::cout << loadLibraryAddr << std::endl;
-	//GetModuleInformation(procHandle, )
-
 	CloseHandle(procHandle);
 
 	std::cout << "Done" << std::endl;
-	//getchar();
+	getchar();
 
 	return 0;
 }
