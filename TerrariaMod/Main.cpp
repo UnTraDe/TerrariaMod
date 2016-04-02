@@ -17,7 +17,7 @@ char backup[6];
 std::mutex m;
 std::condition_variable cv;
 bool ready = false;
-std::atomic<bool> terminate = false;
+std::atomic<bool> running = true;
 
 void Signal()
 {
@@ -74,11 +74,39 @@ void Initialize()
 
 	MessageBox(NULL, "Ready!", "TerrariaMod", MB_OK);
 
-	while (!terminate)
+	while (running)
 	{
 		if (GetAsyncKeyState(VK_F2))
 		{
-			MessageBox(NULL, std::to_string(playerBase).c_str(), "playerBase@", MB_OK);
+			//MessageBox(NULL, std::to_string(playerBase).c_str(), "playerBase@", MB_OK);
+			/*
+			float* velocityX = (float*)(playerBase + 0x2C);
+			float* velocityY = (float*)(playerBase + 0x30);
+
+			*velocityX = 50;
+			*velocityY = -50;
+			*/
+
+			void* inventoryArray = (void*)*(unsigned int*)(playerBase + 0xAC);
+			unsigned int inventorySize = *((int*)((unsigned int)inventoryArray + 0x4));
+			//MessageBox(NULL, std::to_string(inventorySize).c_str(), "inventorySize@", MB_OK);
+
+			
+			void* firstElementPointer = (void*)((unsigned int)inventoryArray + 0x8);
+			/*
+			void* item = (void*)*((unsigned int*)firstElementPointer);
+			char* autoReuse = (char*)((unsigned int)item + 0x12E);
+			MessageBox(NULL, std::to_string(*autoReuse).c_str(), "autoReuse@", MB_OK);
+			*/
+			
+			for (int i = 0; i < inventorySize; i++)
+			{
+				void* itemPointer = (void*)((unsigned int)firstElementPointer + i * 4);
+				void* item = (void*)*((unsigned int*)itemPointer);
+				char* autoReuse = (char*)((unsigned int)item + 0x12E);
+				*autoReuse = 1;
+			}
+			
 		}
 
 		std::this_thread::sleep_for(std::chrono::microseconds(100));
@@ -96,7 +124,7 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 		break;
 	case DLL_PROCESS_DETACH: // DLL unloaded from process space
 							 // lpvReserved is NULL if FreeLibrary has been called or the DLL load failed and non-NULL if the process is terminating
-		terminate = true;
+		running = false;
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
