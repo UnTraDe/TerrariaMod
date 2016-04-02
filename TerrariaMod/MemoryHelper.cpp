@@ -64,23 +64,6 @@ void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t pa
 
 			if (result > -1)
 				return (void*)((unsigned int)info.BaseAddress + result);
-
-			/*
-			for (unsigned int i = 0; i < info.RegionSize - patternSize; i++)
-			{
-				bool found = true;
-
-				for (unsigned int j = 0; j < patternSize; j++)
-					found &= ((char*)pattern)[j] == buffer[i + j];
-
-				if (found)
-				{
-					delete buffer;
-					return (void*)((unsigned int)info.BaseAddress + i);
-				}
-			}
-			*/
-			
 		}
 
 		currentAddress += info.RegionSize;

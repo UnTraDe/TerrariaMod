@@ -88,16 +88,8 @@ void Initialize()
 			*/
 
 			void* inventoryArray = (void*)*(unsigned int*)(playerBase + 0xAC);
-			unsigned int inventorySize = *((int*)((unsigned int)inventoryArray + 0x4));
-			//MessageBox(NULL, std::to_string(inventorySize).c_str(), "inventorySize@", MB_OK);
-
-			
+			unsigned int inventorySize = *((int*)((unsigned int)inventoryArray + 0x4));			
 			void* firstElementPointer = (void*)((unsigned int)inventoryArray + 0x8);
-			/*
-			void* item = (void*)*((unsigned int*)firstElementPointer);
-			char* autoReuse = (char*)((unsigned int)item + 0x12E);
-			MessageBox(NULL, std::to_string(*autoReuse).c_str(), "autoReuse@", MB_OK);
-			*/
 			
 			for (int i = 0; i < inventorySize; i++)
 			{
