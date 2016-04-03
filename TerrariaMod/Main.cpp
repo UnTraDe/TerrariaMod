@@ -11,29 +11,25 @@
 #include "Utils.h"
 
 const char* modName = "TerrariaMod";
-
 char pattern[] = { 0x8B, 0x86, 0x18, 0x03, 0x00, 0x00, 0x8B, 0x95, 0xE0, 0xFD, 0xFF, 0xFF };
 void* instruction = 0;
-unsigned int playerBase = 0;
 char backup[6];
-
-std::mutex m;
-std::condition_variable cv;
-bool ready = false;
+void* jump;
+unsigned int playerBase = 0;
 std::atomic<bool> running = true;
 
-void Signal()
+void DoStuff()
 {
-	{
-		std::lock_guard<std::mutex> lk(m);
-		ready = true;
-	}
-
-	cv.notify_one();
+	// TODO move this to assembly inside Codecave?
+	unsigned int selectedItemIndex = *(unsigned int*)(playerBase + 0x25C);
+	void* inventoryArray = (void*)*(unsigned int*)(playerBase + 0xAC);
+	unsigned int inventorySize = *((int*)((unsigned int)inventoryArray + 0x4));
+	void* firstElementPointer = (void*)((unsigned int)inventoryArray + 0x8);
+	void* itemPointer = (void*)((unsigned int)firstElementPointer + selectedItemIndex * 4);
+	void* item = (void*)*((unsigned int*)itemPointer);
+	char* autoReuse = (char*)((unsigned int)item + 0x12E);
+	*autoReuse = 1;
 }
-
-bool firstTime = true;
-void* jump;
 
 void __declspec(naked) Codecave()
 {
@@ -43,15 +39,8 @@ void __declspec(naked) Codecave()
 		pushad
 	}
 	
-	//WriteToMemory(instruction, backup, 6);
+	DoStuff(); // Use seperate function because we can't use local variables without prolog and epilog
 
-	if (firstTime)
-	{
-		firstTime = false;
-		jump = (void*)((unsigned int)instruction + 5);
-		Signal();
-	}
-	
 	__asm
 	{
 		popad
@@ -73,8 +62,9 @@ void Initialize()
 	unsigned int codeCave = (unsigned int)Codecave;
 	unsigned int relJump = codeCave - ((unsigned int)result + 5); // -5 because E9 jmp instruction takes 5 bytes. relative jmp (E9) is from the NEXT instruction
 	instruction = result;
+	jump = (void*)((unsigned int)instruction + 5);
 
-	char jmp[6] = { 0xE9, 0x00, 0x00, 0x00, 0x00, 0x90 }; // JMP 00 00 00  NOP
+	char jmp[6] = { 0xE9, 0x00, 0x00, 0x00, 0x00, 0x90 }; // JMP 00 00 00 NOP
 	memcpy(&jmp[1], &relJump, 4);
 
 	memcpy(backup, result, 6);
@@ -102,39 +92,16 @@ void Initialize()
 	ResumeThread(mainThreadHandle);
 	CloseHandle(mainThreadHandle);
 
-	std::unique_lock<std::mutex> lk(m);
-	cv.wait(lk, [] { return ready; });
-
 	MessageBox(NULL, "Ready!", modName, MB_OK);
 
 	while (running)
 	{
 		if (GetAsyncKeyState(VK_F2))
 		{
-			//MessageBox(NULL, std::to_string(playerBase).c_str(), "playerBase@", MB_OK);
-			/*
-			float* velocityX = (float*)(playerBase + 0x2C);
-			float* velocityY = (float*)(playerBase + 0x30);
-
-			*velocityX = 50;
-			*velocityY = -50;
-			*/
-
-			void* inventoryArray = (void*)*(unsigned int*)(playerBase + 0xAC);
-			unsigned int inventorySize = *((int*)((unsigned int)inventoryArray + 0x4));			
-			void* firstElementPointer = (void*)((unsigned int)inventoryArray + 0x8);
-			
-			for (int i = 0; i < inventorySize; i++)
-			{
-				void* itemPointer = (void*)((unsigned int)firstElementPointer + i * 4);
-				void* item = (void*)*((unsigned int*)itemPointer);
-				char* autoReuse = (char*)((unsigned int)item + 0x12E);
-				*autoReuse = 1;
-			}
-			
+			MessageBox(NULL, "Sup?", modName, MB_OK);
 		}
 
-		std::this_thread::sleep_for(std::chrono::microseconds(100)); // maybe we can sleep for longer?
+		std::this_thread::sleep_for(std::chrono::microseconds(100)); // TODO maybe we can sleep for longer?
 	}
 }
 
