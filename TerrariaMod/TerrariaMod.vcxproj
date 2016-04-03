@@ -145,10 +145,12 @@
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="MemoryHelper.cpp" />
+    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Common.h" />
     <ClInclude Include="MemoryHelper.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

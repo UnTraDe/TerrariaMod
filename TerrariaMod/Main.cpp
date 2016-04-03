@@ -8,8 +8,11 @@
 #include <Windows.h>
 #include "Common.h"
 #include "MemoryHelper.h"
+#include "Utils.h"
 
-char pattern[] = { 0x29, 0x82, 0x18, 0x03, 0x00, 0x00, 0x83, 0x7D, 0x08, 0xFF };
+const char* modName = "TerrariaMod";
+
+char pattern[] = { 0x8B, 0x86, 0x18, 0x03, 0x00, 0x00, 0x8B, 0x95, 0xE0, 0xFD, 0xFF, 0xFF };
 void* instruction = 0;
 unsigned int playerBase = 0;
 char backup[6];
@@ -29,31 +32,41 @@ void Signal()
 	cv.notify_one();
 }
 
+bool firstTime = true;
+void* jump;
+
 void __declspec(naked) Codecave()
 {
 	__asm
 	{
-		mov playerBase, edx
-		pushfd
+		mov playerBase, esi
+		pushad
 	}
 	
-	WriteToMemory(instruction, backup, 6);
-	Signal();
+	//WriteToMemory(instruction, backup, 6);
+
+	if (firstTime)
+	{
+		firstTime = false;
+		jump = (void*)((unsigned int)instruction + 5);
+		Signal();
+	}
 	
 	__asm
 	{
-		popfd
-		jmp [instruction]
+		popad
+		mov eax, [esi + 0x00000318]
+		jmp [jump]
 	}
 }
 
 void Initialize()
 {
-	void* result = ScanPattern(0, 0xffffffff, pattern, sizeof(pattern)); // TODO skip this module address space?
+	void* result = ScanPattern(0, 0xffffffff, pattern, sizeof(pattern)); // TODO make this faster
 
 	if (result == NULL)
 	{	
-		MessageBox(NULL, "ERROR: Pattern not found. Different version?", "TerrariaMod", MB_OK);
+		MessageBox(NULL, "ERROR: Pattern not found. Are you playing a different version?", modName, MB_OK);
 		return;
 	}
 	
@@ -65,14 +78,34 @@ void Initialize()
 	memcpy(&jmp[1], &relJump, 4);
 
 	memcpy(backup, result, 6);
+
+	DWORD mainThreadId = GetMainThreadId();
+
+	if (mainThreadId == 0)
+	{
+		MessageBox(NULL, "ERROR: Main thread not found!", modName, MB_OK);
+		return;
+	}
+
+	HANDLE mainThreadHandle = OpenThread(THREAD_ALL_ACCESS, false, mainThreadId); // TODO consider using THREAD_SUSPEND_RESUME
+	
+	if (mainThreadHandle == NULL)
+	{
+		MessageBox(NULL, "ERROR: Cannot open the main thread!", modName, MB_OK);
+		return;
+	}
+
+	SuspendThread(mainThreadHandle);
+	
 	WriteToMemory(result, jmp, 6);
 
-	MessageBox(NULL, "Fall please", "TerrariaMod", MB_OK);
+	ResumeThread(mainThreadHandle);
+	CloseHandle(mainThreadHandle);
 
 	std::unique_lock<std::mutex> lk(m);
 	cv.wait(lk, [] { return ready; });
 
-	MessageBox(NULL, "Ready!", "TerrariaMod", MB_OK);
+	MessageBox(NULL, "Ready!", modName, MB_OK);
 
 	while (running)
 	{
@@ -101,7 +134,7 @@ void Initialize()
 			
 		}
 
-		std::this_thread::sleep_for(std::chrono::microseconds(100));
+		std::this_thread::sleep_for(std::chrono::microseconds(100)); // maybe we can sleep for longer?
 	}
 }
 
