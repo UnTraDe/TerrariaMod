@@ -12,6 +12,17 @@ void WriteToMemory(void* dst, void* src, size_t size)
 	VirtualProtect(dst, size, oldProtect, &temp); // According to the MSDN documentation the function will fail if lpflOldProtect is null
 }
 
+void NopMemory(void* dst, size_t size, void* backup)
+{
+	memcpy(backup, dst, size); // TODO make sure Virtual Protection is ok with reading?
+	
+	// TODO make sure size < 256
+	// TODO probably need to optimize this...
+	char nops[256];
+	memset(nops, 0x90, sizeof(nops)); 
+
+	WriteToMemory(dst, nops, size);
+}
 
 // TODO change return type to something else
 int FindPattern(void* block, size_t blockSize, void* pattern, size_t patternSize)

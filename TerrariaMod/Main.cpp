@@ -11,16 +11,14 @@
 #include "Utils.h"
 
 const char* modName = "TerrariaMod";
-char pattern[] = { 0x8B, 0x86, 0x18, 0x03, 0x00, 0x00, 0x8B, 0x95, 0xE0, 0xFD, 0xFF, 0xFF };
-void* instruction = 0;
+char pattern[] = { 0x0F, 0x84, 0x1B, 0x01, 0x00, 0x00, 0x8B, 0x85, 0xDC, 0xE6, 0xFF, 0xFF };
 char backup[6];
-void* jump;
-unsigned int playerBase = 0;
 std::atomic<bool> running = true;
 
 void DoStuff()
 {
 	// TODO move this to assembly inside Codecave?
+	/*
 	unsigned int selectedItemIndex = *(unsigned int*)(playerBase + 0x25C);
 	void* inventoryArray = (void*)*(unsigned int*)(playerBase + 0xAC);
 	unsigned int inventorySize = *((int*)((unsigned int)inventoryArray + 0x4));
@@ -29,46 +27,11 @@ void DoStuff()
 	void* item = (void*)*((unsigned int*)itemPointer);
 	char* autoReuse = (char*)((unsigned int)item + 0x12E);
 	*autoReuse = 1;
-}
-
-void __declspec(naked) Codecave()
-{
-	__asm
-	{
-		mov playerBase, esi
-		pushad
-	}
-	
-	DoStuff(); // Use seperate function because we can't use local variables without prolog and epilog
-
-	__asm
-	{
-		popad
-		mov eax, [esi + 0x00000318]
-		jmp [jump]
-	}
+	*/
 }
 
 void Initialize()
 {
-	void* result = ScanPattern(0, 0xffffffff, pattern, sizeof(pattern)); // TODO make this faster
-
-	if (result == NULL)
-	{	
-		MessageBox(NULL, "ERROR: Pattern not found. Are you playing a different version?", modName, MB_OK);
-		return;
-	}
-	
-	unsigned int codeCave = (unsigned int)Codecave;
-	unsigned int relJump = codeCave - ((unsigned int)result + 5); // -5 because E9 jmp instruction takes 5 bytes. relative jmp (E9) is from the NEXT instruction
-	instruction = result;
-	jump = (void*)((unsigned int)instruction + 5);
-
-	char jmp[6] = { 0xE9, 0x00, 0x00, 0x00, 0x00, 0x90 }; // JMP 00 00 00 NOP
-	memcpy(&jmp[1], &relJump, 4);
-
-	memcpy(backup, result, 6);
-
 	DWORD mainThreadId = GetMainThreadId();
 
 	if (mainThreadId == 0)
@@ -78,18 +41,27 @@ void Initialize()
 	}
 
 	HANDLE mainThreadHandle = OpenThread(THREAD_ALL_ACCESS, false, mainThreadId); // TODO consider using THREAD_SUSPEND_RESUME
-	
+
 	if (mainThreadHandle == NULL)
 	{
 		MessageBox(NULL, "ERROR: Cannot open the main thread!", modName, MB_OK);
 		return;
 	}
 
+	void* result = ScanPattern(0, 0xffffffff, pattern, sizeof(pattern)); // TODO make this faster
+
+	if (result == NULL)
+	{	
+		MessageBox(NULL, "ERROR: Pattern not found. Are you playing a different version?", modName, MB_OK);
+		return;
+	}
+
 	SuspendThread(mainThreadHandle);
-	
-	WriteToMemory(result, jmp, 6);
+
+	NopMemory(result, 6, backup);
 
 	ResumeThread(mainThreadHandle);
+
 	CloseHandle(mainThreadHandle);
 
 	MessageBox(NULL, "Ready!", modName, MB_OK);
