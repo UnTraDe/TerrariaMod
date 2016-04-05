@@ -14,7 +14,8 @@ void WriteToMemory(void* dst, void* src, size_t size)
 
 void NopMemory(void* dst, size_t size, void* backup)
 {
-	memcpy(backup, dst, size); // TODO make sure Virtual Protection is ok with reading?
+	if(backup != nullptr)
+		memcpy(backup, dst, size); // TODO make sure Virtual Protection is ok with reading?
 	
 	// TODO make sure size < 256
 	// TODO probably need to optimize this...
