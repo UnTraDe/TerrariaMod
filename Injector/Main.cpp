@@ -7,8 +7,6 @@
 DWORD FindProcessIdByName(std::string name, bool caseSensitive);
 DWORD FindMainThreadOfProcessId(DWORD processId);
 
-//char* dllPath = "C:\\Users\\UnTraDe\\Documents\\Visual Studio 2015\\Projects\\TerrariaMod\\Debug\\TerrariaMod.dll";
-
 int main(int argc, char const *argv[])
 {
 	std::string procName("terraria.exe");
@@ -19,6 +17,7 @@ int main(int argc, char const *argv[])
 	HANDLE procHandle = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
 	assert(procHandle != NULL);
 
+#ifndef _DEBUG
 	DWORD bufferSize = GetCurrentDirectory(0, NULL);
 	char* dllPath = new char[bufferSize];
 	GetCurrentDirectory(bufferSize, dllPath);
@@ -26,6 +25,9 @@ int main(int argc, char const *argv[])
 	delete dllPath;
 	path += "\\TerrariaMod.dll";
 	std::cout << "injecting: " << path << std::endl;
+#else
+	std::string path("C:\\Users\\UnTraDe\\Documents\\Visual Studio 2015\\Projects\\TerrariaMod\\Debug\\TerrariaMod.dll");
+#endif
 
 	size_t pathLength = path.size() + 1;
 	LPVOID memAddr = VirtualAllocEx(procHandle, NULL, pathLength, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
