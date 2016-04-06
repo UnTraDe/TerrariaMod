@@ -7,7 +7,7 @@
 DWORD FindProcessIdByName(std::string name, bool caseSensitive);
 DWORD FindMainThreadOfProcessId(DWORD processId);
 
-char* dllPath = "C:\\Users\\UnTraDe\\Documents\\Visual Studio 2015\\Projects\\TerrariaMod\\Debug\\TerrariaMod.dll";
+//char* dllPath = "C:\\Users\\UnTraDe\\Documents\\Visual Studio 2015\\Projects\\TerrariaMod\\Debug\\TerrariaMod.dll";
 
 int main(int argc, char const *argv[])
 {
@@ -19,10 +19,18 @@ int main(int argc, char const *argv[])
 	HANDLE procHandle = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
 	assert(procHandle != NULL);
 
-	size_t pathLength = strlen(dllPath) + 1; // strlen does not include the null-terminating character
+	DWORD bufferSize = GetCurrentDirectory(0, NULL);
+	char* dllPath = new char[bufferSize];
+	GetCurrentDirectory(bufferSize, dllPath);
+	std::string path(dllPath);
+	delete dllPath;
+	path += "\\TerrariaMod.dll";
+	std::cout << "injecting: " << path << std::endl;
+
+	size_t pathLength = path.size() + 1;
 	LPVOID memAddr = VirtualAllocEx(procHandle, NULL, pathLength, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 	assert(memAddr);
-	bool success = WriteProcessMemory(procHandle, memAddr, dllPath, pathLength, NULL);
+	bool success = WriteProcessMemory(procHandle, memAddr, path.c_str(), pathLength, NULL);
 	assert(success);
 
 	FARPROC loadLibraryAddr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
