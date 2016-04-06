@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <Psapi.h>
 #include "Common.h"
+#include "Utils.h"
 
 void WriteToMemory(void* dst, void* src, size_t size)
 {
@@ -48,21 +49,23 @@ void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t pa
 	MODULEINFO moduleInfo;
 	GetModuleInformation(GetCurrentProcess(), hModule, &moduleInfo, sizeof(moduleInfo));
 	unsigned int currentAddress = (unsigned int)blockAddress;
+	
+	DWORD start = timeGetTime();
 
 	while (currentAddress <= ((unsigned int)blockAddress + blockSize) - patternSize) // -patternSize because pattern can't fit in the end
 	{
 		MEMORY_BASIC_INFORMATION info;
 		VirtualQuery((void*)currentAddress, &info, sizeof(info));
 
+		// skip TerrariaMod.dll address space
 		if (currentAddress >= (unsigned int)moduleInfo.lpBaseOfDll && currentAddress <= ((unsigned int)moduleInfo.lpBaseOfDll + (unsigned int)moduleInfo.SizeOfImage))
 		{
-#ifdef _DEBUG
 			std::string dbg;
-			dbg += std::to_string(currentAddress);
+			dbg += int_to_hex(currentAddress);
 			dbg += " is inside TerrairaMod.dll space, skipping to ";
-			dbg += std::to_string((unsigned int)moduleInfo.lpBaseOfDll + (unsigned int)moduleInfo.SizeOfImage + 1);
+			dbg += int_to_hex((unsigned int)moduleInfo.lpBaseOfDll + (unsigned int)moduleInfo.SizeOfImage + 1);
 			DebugLog(dbg);
-#endif
+
 			currentAddress = (unsigned int)moduleInfo.lpBaseOfDll + (unsigned int)moduleInfo.SizeOfImage + 1;
 			continue;
 		}
@@ -75,7 +78,16 @@ void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t pa
 			delete buffer;
 
 			if (result > -1)
+			{
+				std::string dbg;
+				dbg += "Scan finished in ";
+				dbg += std::to_string(timeGetTime() - start);
+				dbg += " milliseconds";
+				DebugLog(dbg);
+
 				return (void*)((unsigned int)info.BaseAddress + result);
+			}
+				
 		}
 
 		currentAddress += info.RegionSize;

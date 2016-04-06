@@ -11,24 +11,10 @@
 #include "Utils.h"
 
 const char* modName = "TerrariaMod";
-char pattern[] = { 0x0F, 0x84, 0x1B, 0x01, 0x00, 0x00, 0x8B, 0x85, 0xDC, 0xE6, 0xFF, 0xFF };
-char backup[6];
+char patternCheckAutoSwing[] = { 0x0F, 0x84, 0x1B, 0x01, 0x00, 0x00, 0x8B, 0x85, 0xDC, 0xE6, 0xFF, 0xFF };
+// only for expert mode
+char patternSetRespawnTimer[] = { 0xF2, 0x0F, 0x10, 0x45, 0x84, 0xF2, 0x0F, 0x2C, 0xC0, 0x89, 0x86, 0xC4, 0x02, 0x00, 0x00 };
 std::atomic<bool> running = true;
-
-void DoStuff()
-{
-	// TODO move this to assembly inside Codecave?
-	/*
-	unsigned int selectedItemIndex = *(unsigned int*)(playerBase + 0x25C);
-	void* inventoryArray = (void*)*(unsigned int*)(playerBase + 0xAC);
-	unsigned int inventorySize = *((int*)((unsigned int)inventoryArray + 0x4));
-	void* firstElementPointer = (void*)((unsigned int)inventoryArray + 0x8);
-	void* itemPointer = (void*)((unsigned int)firstElementPointer + selectedItemIndex * 4);
-	void* item = (void*)*((unsigned int*)itemPointer);
-	char* autoReuse = (char*)((unsigned int)item + 0x12E);
-	*autoReuse = 1;
-	*/
-}
 
 void Initialize()
 {
@@ -48,17 +34,29 @@ void Initialize()
 		return;
 	}
 
-	void* result = ScanPattern(0, 0xffffffff, pattern, sizeof(pattern)); // TODO make this faster
+	void* patternCheckAutoSwingLocation = ScanPattern(0, 0xffffffff, patternCheckAutoSwing, sizeof(patternCheckAutoSwing)); // TODO make this faster
 
-	if (result == NULL)
+	if (patternCheckAutoSwingLocation == NULL)
 	{	
-		MessageBox(NULL, "ERROR: Pattern not found. Are you playing a different version?", modName, MB_OK);
+		MessageBox(NULL, "ERROR: patternCheckAutoSwingLocation not found. Are you playing a different version?", modName, MB_OK);
+		return;
+	}
+	/*
+	void* patternSetRespawnTimerLocation = ScanPattern(0, 0xffffffff, patternSetRespawnTimer, sizeof(patternCheckAutoSwing)); // TODO make this faster
+
+	if (patternSetRespawnTimerLocation == NULL)
+	{
+		MessageBox(NULL, "ERROR: patternSetRespawnTimer not found. Are you playing a different version?", modName, MB_OK);
 		return;
 	}
 
+	char shorterRespawnTime[] = { 0xC7, 0x86, 0xC4, 0x02, 0x00, 0x00, 0xF0, 0x00, 0x00, 0x00, // mov [esi+000002C4],000000F0
+					0x90, 0x90, 0x90, 0x90, 0x90 }; // fill remaing with nops
+	*/
 	SuspendThread(mainThreadHandle);
-
-	NopMemory(result, 6, backup);
+	
+	NopMemory(patternCheckAutoSwingLocation, 6, nullptr);
+	//WriteToMemory(patternSetRespawnTimerLocation, shorterRespawnTime, sizeof(shorterRespawnTime));
 
 	ResumeThread(mainThreadHandle);
 
