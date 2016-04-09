@@ -1,9 +1,8 @@
 #include "Utils.h"
 #include <TlHelp32.h>
 
-DWORD GetMainThreadId()
+DWORD GetProccessMainThreadId(DWORD processId)
 {
-	DWORD processId = GetCurrentProcessId();
 	HANDLE h = CreateToolhelp32Snapshot(TH32CS_SNAPTHREAD, 0);
 
 	if (h != INVALID_HANDLE_VALUE)
@@ -47,4 +46,9 @@ DWORD GetMainThreadId()
 	}
 
 	return 0;
+}
+
+DWORD GetMainThreadId()
+{
+	return GetProccessMainThreadId(GetCurrentProcessId());
 }

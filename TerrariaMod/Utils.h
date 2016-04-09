@@ -16,4 +16,5 @@ std::string int_to_hex(T i)
 }
 
 
+DWORD GetProccessMainThreadId(DWORD processId);
 DWORD GetMainThreadId();
