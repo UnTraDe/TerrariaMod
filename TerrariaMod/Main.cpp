@@ -11,10 +11,8 @@
 #include "Utils.h"
 
 const char* modName = "TerrariaMod";
-char patternCheckAutoSwing[] = { 0x0F, 0x84, 0x1B, 0x01, 0x00, 0x00, 0x8B, 0x85, 0xDC, 0xE6, 0xFF, 0xFF };
-// only for expert mode
-char patternSetRespawnTimer[] = { 0xF2, 0x0F, 0x10, 0x45, 0x84, 0xF2, 0x0F, 0x2C, 0xC0, 0x89, 0x86, 0xC4, 0x02, 0x00, 0x00 };
-char patternSetTimerDelay[] = { 0x89, 0x90, 0x38, 0x04, 0x00, 0x00 };
+char patternCheckAutoSwing[] = { 0x80, 0xB8, 0x2E, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x84, 0x1B, 0x01, 0x00, 0x00 };
+
 std::atomic<bool> running = true;
 
 void Initialize()
@@ -42,56 +40,12 @@ void Initialize()
 		MessageBox(NULL, "ERROR: patternCheckAutoSwingLocation not found. Are you playing a different version?", modName, MB_OK);
 		return;
 	}
-	
-	void* patternSetRespawnTimerLocation = ScanPattern(0, 0xffffffff, patternSetRespawnTimer, sizeof(patternSetRespawnTimer)); // TODO make this faster
-
-	if (patternSetRespawnTimerLocation == NULL)
-	{
-		MessageBox(NULL, "ERROR: patternSetRespawnTimer not found. Are you playing a different version?", modName, MB_OK);
-		return;
-	}
-
-	void* patternSetTimerDelayLocation = ScanPattern(0, 0xffffffff, patternSetTimerDelay, sizeof(patternSetTimerDelay)); // TODO make this faster
-
-	if (patternSetTimerDelayLocation == NULL)
-	{
-		MessageBox(NULL, "ERROR: patternSetTimerDelay not found. Are you playing a different version?", modName, MB_OK);
-		return;
-	}
-	
-	char shorterRespawnTime[] = { 0xC7, 0x86, 0xC4, 0x02, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov [esi+000002C4],00000000
-					0x90, 0x90, 0x90, 0x90, 0x90 }; // fill remaing with nops
-
-	unsigned int respawnTimer = 4 * 60;
-	memcpy(&shorterRespawnTime[6], &respawnTimer, 4);
-	
-	char shorterPotionDelay[] = { 0xC7, 0x80, 0x38, 0x04, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // mov [eax+00000438],00000000
-					0x90, 0x90 }; // fill remaing with nops
-
-	unsigned int potionDelay = 10 * 60;
-	memcpy(&shorterPotionDelay[6], &potionDelay, 4);
 
 	SuspendThread(mainThreadHandle);
-	
-	NopMemory(patternCheckAutoSwingLocation, 6, nullptr);
-	//WriteToMemory(patternSetRespawnTimerLocation, shorterRespawnTime, sizeof(shorterRespawnTime));
-	//WriteToMemory((void*)((unsigned int)patternSetTimerDelayLocation - 6), shorterPotionDelay, sizeof(shorterPotionDelay));
-
+	NopMemory((void*)((unsigned int)patternCheckAutoSwingLocation + 7), 6, nullptr);
 	ResumeThread(mainThreadHandle);
-
 	CloseHandle(mainThreadHandle);
-
 	MessageBox(NULL, "Ready!", modName, MB_OK);
-
-	while (running)
-	{
-		if (GetAsyncKeyState(VK_F2))
-		{
-			MessageBox(NULL, "Sup?", modName, MB_OK);
-		}
-
-		std::this_thread::sleep_for(std::chrono::microseconds(100)); // TODO maybe we can sleep for longer?
-	}
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
