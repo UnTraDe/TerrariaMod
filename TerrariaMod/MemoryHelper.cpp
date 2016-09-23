@@ -92,10 +92,7 @@ void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t pa
 		}
 
 		if (info.RegionSize >= UINT_MAX - currentAddress)
-		{
-			DebugLog("wrap around detected!");
 			break;
-		}
 
 		currentAddress += info.RegionSize;
 	}
