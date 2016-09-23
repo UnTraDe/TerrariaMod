@@ -13,8 +13,6 @@
 const char* modName = "TerrariaMod";
 char patternCheckAutoSwing[] = { 0x80, 0xB8, 0x2E, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x84, 0x1B, 0x01, 0x00, 0x00 };
 
-std::atomic<bool> running = true;
-
 void Initialize()
 {
 	DWORD mainThreadId = GetMainThreadId();
@@ -59,7 +57,6 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
 		break;
 	case DLL_PROCESS_DETACH: // DLL unloaded from process space
 							 // lpvReserved is NULL if FreeLibrary has been called or the DLL load failed and non-NULL if the process is terminating
-		running = false;
 		break;
 	case DLL_THREAD_ATTACH:
 		break;
