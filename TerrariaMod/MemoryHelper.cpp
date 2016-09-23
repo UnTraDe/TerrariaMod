@@ -1,4 +1,5 @@
 #include "MemoryHelper.h"
+
 #include <Windows.h>
 #include <Psapi.h>
 #include "Common.h"
@@ -88,6 +89,12 @@ void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t pa
 				return (void*)((unsigned int)info.BaseAddress + result);
 			}
 				
+		}
+
+		if (info.RegionSize >= UINT_MAX - currentAddress)
+		{
+			DebugLog("wrap around detected!");
+			break;
 		}
 
 		currentAddress += info.RegionSize;
