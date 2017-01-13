@@ -8,6 +8,7 @@ The code is currently a big mess and there is a lot that need refactoring and op
 This is the first working version of the mod, there might be a few bugs. Should work on multiplayer although not tested enough.
 
 How to use:
+
 1. Launch Terraria
 2. Enter some world
 3. Launch Injector.exe
