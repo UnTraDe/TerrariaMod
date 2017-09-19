@@ -1,8 +1,8 @@
 # TerrariaMod
 Simple mod for Terraria that removes the need to click repeatly to attack with weapons.
 
-I tested this on version 1.3.4.3 Works only on Windows.
-You can download it from here: https://github.com/UnTraDe/TerrariaMod/releases/download/0.2.3/TerrariaMod-0.2.3v-alpha.zip
+I tested this on version 1.3.5.3 Works only on Windows.
+You can download it from here: https://github.com/UnTraDe/TerrariaMod/releases/latest
 The code is currently a big mess and there is a lot that need refactoring and optimizing. Hopefully I'll do that soon.
 
 This is the first working version of the mod, there might be a few bugs. Should work on multiplayer although not tested enough.
