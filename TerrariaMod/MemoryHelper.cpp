@@ -28,14 +28,20 @@ void NopMemory(void* dst, size_t size, void* backup)
 }
 
 // TODO change return type to something else
-int FindPattern(void* block, size_t blockSize, void* pattern, size_t patternSize)
+int FindPattern(const void* block, size_t blockSize, const void* pattern, size_t patternSize)
 {
 	for (unsigned int i = 0; i < blockSize - patternSize; i++)
 	{
 		bool found = true;
 
 		for (unsigned int j = 0; j < patternSize; j++)
-			found &= ((char*)pattern)[j] == ((char*)block)[i + j];
+		{
+			if (((char*)pattern)[j] != ((char*)block)[i + j])
+			{
+				found = false;
+				break;
+			}
+		}
 
 		if (found)
 			return i;
