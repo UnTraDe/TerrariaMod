@@ -6,15 +6,13 @@
 #include <Windows.h>
 
 template< typename T >
-std::string int_to_hex(T i)
+std::wstring int_to_hex(T i)
 {
-	std::stringstream stream;
-	stream << "0x"
-		<< std::setfill('0') << std::setw(sizeof(T) * 2)
-		<< std::hex << i;
-	return stream.str();
-}
+	std::wostringstream oss;
+	oss << L"0x" << std::hex << i;
 
+	return oss.str();
+}
 
 DWORD GetProccessMainThreadId(DWORD processId);
 DWORD GetMainThreadId();

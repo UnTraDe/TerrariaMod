@@ -46,7 +46,7 @@ int FindPattern(void* block, size_t blockSize, void* pattern, size_t patternSize
 
 void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t patternSize)
 {
-	HMODULE hModule = GetModuleHandle("TerrariaMod.dll");
+	HMODULE hModule = GetModuleHandle(L"TerrariaMod.dll");
 	MODULEINFO moduleInfo;
 	GetModuleInformation(GetCurrentProcess(), hModule, &moduleInfo, sizeof(moduleInfo));
 	unsigned int currentAddress = (unsigned int)blockAddress;
@@ -61,9 +61,9 @@ void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t pa
 		// skip TerrariaMod.dll address space
 		if (currentAddress >= (unsigned int)moduleInfo.lpBaseOfDll && currentAddress <= ((unsigned int)moduleInfo.lpBaseOfDll + (unsigned int)moduleInfo.SizeOfImage))
 		{
-			std::string dbg;
+			std::wstring dbg;
 			dbg += int_to_hex(currentAddress);
-			dbg += " is inside TerrairaMod.dll space, skipping to ";
+			dbg += L" is inside TerrairaMod.dll space, skipping to ";
 			dbg += int_to_hex((unsigned int)moduleInfo.lpBaseOfDll + (unsigned int)moduleInfo.SizeOfImage + 1);
 			DebugLog(dbg);
 
@@ -80,10 +80,10 @@ void* ScanPattern(void* blockAddress, size_t blockSize, void* pattern, size_t pa
 
 			if (result > -1)
 			{
-				std::string dbg;
-				dbg += "Scan finished in ";
-				dbg += std::to_string(timeGetTime() - start);
-				dbg += " milliseconds";
+				std::wstring dbg;
+				dbg += L"Scan finished in ";
+				dbg += std::to_wstring(timeGetTime() - start);
+				dbg += L" milliseconds";
 				DebugLog(dbg);
 
 				return (void*)((unsigned int)info.BaseAddress + result);

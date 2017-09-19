@@ -10,7 +10,7 @@
 #include "MemoryHelper.h"
 #include "Utils.h"
 
-const char* modName = "TerrariaMod";
+const wchar_t* modName = L"TerrariaMod";
 
 char patternCheckAutoSwing[] = { 0x80, 0xB8, 0x2E, 0x01, 0x00, 0x00, 0x00, 0x0F, 0x84, 0xF1, 0x00, 0x00, 0x00 };
 
@@ -20,7 +20,7 @@ void Initialize()
 
 	if (mainThreadId == 0)
 	{
-		MessageBox(NULL, "ERROR: Main thread not found!", modName, MB_OK);
+		MessageBox(NULL, L"ERROR: Main thread not found!", modName, MB_OK);
 		return;
 	}
 
@@ -28,7 +28,7 @@ void Initialize()
 
 	if (mainThreadHandle == NULL)
 	{
-		MessageBox(NULL, "ERROR: Cannot open the main thread!", modName, MB_OK);
+		MessageBox(NULL, L"ERROR: Cannot open the main thread!", modName, MB_OK);
 		return;
 	}
 
@@ -36,7 +36,7 @@ void Initialize()
 
 	if (patternCheckAutoSwingLocation == NULL)
 	{	
-		MessageBox(NULL, "ERROR: patternCheckAutoSwingLocation not found. Are you playing a different version?", modName, MB_OK);
+		MessageBox(NULL, L"ERROR: patternCheckAutoSwingLocation not found. Are you playing a different version?", modName, MB_OK);
 		return;
 	}
 
@@ -44,7 +44,7 @@ void Initialize()
 	NopMemory((void*)((unsigned int)patternCheckAutoSwingLocation + 7), 6, nullptr);
 	ResumeThread(mainThreadHandle);
 	CloseHandle(mainThreadHandle);
-	MessageBox(NULL, "Ready!", modName, MB_OK);
+	MessageBox(NULL, L"Ready!", modName, MB_OK);
 }
 
 BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)

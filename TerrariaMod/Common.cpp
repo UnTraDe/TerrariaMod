@@ -1,10 +1,10 @@
 #include "Common.h"
 #include <Windows.h>
 
-void DebugLog(const std::string& message)
+void DebugLog(const std::wstring& message)
 {
-	std::string msg("TerrariaMod: ");
+	std::wstring msg(L"TerrariaMod: ");
 	msg.append(message);
-	msg.append("\n");
+	msg.append(L"\n");
 	OutputDebugString(msg.c_str());
 }

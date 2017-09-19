@@ -2,4 +2,4 @@
 
 #include <string>
 
-void DebugLog(const std::string& message);
+void DebugLog(const std::wstring& message);
