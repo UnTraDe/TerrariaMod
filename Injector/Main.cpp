@@ -19,12 +19,12 @@ int main(int argc, char const *argv[])
 
 #ifndef _DEBUG
 	DWORD bufferSize = GetCurrentDirectory(0, NULL);
-	char* dllPath = new char[bufferSize];
+	wchar_t* dllPath = new wchar_t[bufferSize];
 	GetCurrentDirectory(bufferSize, dllPath);
-	std::string path(dllPath);
+	std::wstring path(dllPath);
 	delete dllPath;
-	path += "\\TerrariaMod.dll";
-	std::cout << "injecting: " << path << std::endl;
+	path += L"\\TerrariaMod.dll";
+	std::wcout << "injecting: " << path << std::endl;
 #else
 	std::string path("C:\\Users\\Tomer\\Desktop\\TerrariaMod\\Debug\\TerrariaMod.dll");
 #endif
