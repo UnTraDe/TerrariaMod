@@ -4,15 +4,15 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-DWORD FindProcessIdByName(std::string name, bool caseSensitive);
+DWORD FindProcessIdByName(std::wstring name, bool caseSensitive);
 DWORD FindMainThreadOfProcessId(DWORD processId);
 
 int main(int argc, char const *argv[])
 {
-	std::string procName("terraria.exe");
+	std::wstring procName(L"terraria.exe");
 	DWORD processId = FindProcessIdByName(procName, false);
 	assert(processId);
-	std::cout << procName << " found: " << processId << std::endl;
+	std::wcout << procName << " found: " << processId << std::endl;
 
 	HANDLE procHandle = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
 	assert(procHandle != NULL);
@@ -35,7 +35,7 @@ int main(int argc, char const *argv[])
 	bool success = WriteProcessMemory(procHandle, memAddr, path.c_str(), pathLength, NULL);
 	assert(success);
 
-	FARPROC loadLibraryAddr = GetProcAddress(GetModuleHandle("kernel32.dll"), "LoadLibraryA");
+	FARPROC loadLibraryAddr = GetProcAddress(GetModuleHandle(L"kernel32.dll"), "LoadLibraryA");
 	
 	success = CreateRemoteThread(
 		procHandle,
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
 	return 0;
 }
 
-DWORD FindProcessIdByName(std::string name, bool caseSensitive)
+DWORD FindProcessIdByName(std::wstring name, bool caseSensitive)
 {
 	PROCESSENTRY32 entry;
 	entry.dwSize = sizeof(PROCESSENTRY32);
@@ -69,12 +69,12 @@ DWORD FindProcessIdByName(std::string name, bool caseSensitive)
 		{
 			if (caseSensitive)
 			{
-				if (strcmp(entry.szExeFile, name.c_str()) == 0)
+				if (_wcsnicmp(entry.szExeFile, name.c_str(), 260) == 0)
 					return entry.th32ProcessID;
 			}
 			else
 			{
-				if (stricmp(entry.szExeFile, name.c_str()) == 0)
+				if (_wcsnicmp(entry.szExeFile, name.c_str(), 260) == 0)
 					return entry.th32ProcessID;
 			}
 		}
