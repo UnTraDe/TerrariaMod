@@ -26,7 +26,7 @@ int main(int argc, char const *argv[])
 	path += "\\TerrariaMod.dll";
 	std::cout << "injecting: " << path << std::endl;
 #else
-	std::string path("C:\\Users\\UnTraDe\\Documents\\Visual Studio 2015\\Projects\\TerrariaMod\\Debug\\TerrariaMod.dll");
+	std::string path("C:\\Users\\Tomer\\Desktop\\TerrariaMod\\Debug\\TerrariaMod.dll");
 #endif
 
 	size_t pathLength = path.size() + 1;
